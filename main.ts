@@ -42,6 +42,8 @@ export default class MyPlugin extends Plugin {
 						btnList[1].click()
 					})
 				}
+				// Hide the expand-btn
+				target.style.display = 'none'
 			}
 			targetElement && targetElement.appendChild(newSiblingElement)
 		});
@@ -73,7 +75,7 @@ export default class MyPlugin extends Plugin {
 
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Light/Dark Toggle', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('diamond', 'Light/Dark Toggle', (evt: MouseEvent) => {
 
 		});
 		// Perform additional things with the ribbon
