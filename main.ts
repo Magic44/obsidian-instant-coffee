@@ -1,6 +1,7 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
 
 // Remember to rename these classes and interfaces!
+
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -16,10 +17,41 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+		// 添加点击事件处理程序
+		this.registerDomEvent(document, "click", (event) => {
+			const target = event.target as HTMLElement;
+
+			// 检查点击的元素或其祖先是否是搜索结果项
+			const searchResultItem = target.closest(".search-result-file-match.tappable");
+			if (searchResultItem) {
+				// 移除其他项的高亮样式
+				document.querySelectorAll(".search-result-file-match.tappable.highlighted")
+					.forEach((el) => {
+					el.classList.remove("highlighted");
+				});
+
+				// 为点击的项添加高亮样式
+				searchResultItem.classList.add("highlighted");
+				// console.log("Highlighted element:", searchResultItem);
+			}
+		});
+		const css = (strings: TemplateStringsArray) => strings.join("");
+		const styles = css`
+			.search-result-file-match.tappable.highlighted {
+				background-color: rgba(157, 123, 218, 0.51) !important;
+				border: 1px solid #554aca;
+				border-radius: 4px;
+			}
+		`;
+		// 定义高亮样式
+		const style = document.createElement("style");
+		style.textContent = styles
+		document.head.appendChild(style);
+
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+			new Notice('😺This is a notice!!!AAA');
 		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
@@ -77,6 +109,7 @@ export default class MyPlugin extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
+
 
 	onunload() {
 
