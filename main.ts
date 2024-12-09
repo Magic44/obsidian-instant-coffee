@@ -10,7 +10,7 @@ interface MyPluginSettings {
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
+	mySetting: 'default1',
 	highlightColor: "rgba(157, 123, 218, 0.51)", // 默认颜色
 }
 
