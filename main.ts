@@ -1,14 +1,17 @@
 import {App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
+import {hexToRgba} from "./utils/utils";
 
 // Remember to rename these classes and interfaces!
 
 
 interface MyPluginSettings {
 	mySetting: string;
+	highlightColor: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+	mySetting: 'default',
+	highlightColor: "rgba(157, 123, 218, 0.51)", // 默认颜色
 }
 
 export default class MyPlugin extends Plugin {
@@ -17,7 +20,8 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// 添加点击事件处理程序
+		// Custom function
+		// Ex: a click-highlight for search-result item
 		this.registerDomEvent(document, "click", (event) => {
 			const target = event.target as HTMLElement;
 
@@ -27,8 +31,8 @@ export default class MyPlugin extends Plugin {
 				// 移除其他项的高亮样式
 				document.querySelectorAll(".search-result-file-match.tappable.highlighted")
 					.forEach((el) => {
-					el.classList.remove("highlighted");
-				});
+						el.classList.remove("highlighted");
+					});
 
 				// 为点击的项添加高亮样式
 				searchResultItem.classList.add("highlighted");
@@ -36,10 +40,12 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 		const css = (strings: TemplateStringsArray) => strings.join("");
-		const styles = css`
+		console.log("onLoad highlight", this.settings.highlightColor)
+		const highlightColor = this.settings.highlightColor
+		const rgba = hexToRgba(highlightColor, '0.5')
+		const styles = `
 			.search-result-file-match.tappable.highlighted {
-				background-color: rgba(157, 123, 218, 0.51) !important;
-				border: 1px solid #554aca;
+				background-color: ${rgba} !important;
 				border-radius: 4px;
 			}
 		`;
@@ -103,7 +109,7 @@ export default class MyPlugin extends Plugin {
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
+			// console.log('click', evt);
 		});
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
@@ -154,14 +160,15 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+			.setName('Highlight Color')
+			.setDesc("It will work when the plugin is reload")
+			.addColorPicker((colorComponent) => colorComponent
+				.setValue(this.plugin.settings.highlightColor)
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					console.log("onChange", value)
+					this.plugin.settings.highlightColor = value;
 					await this.plugin.saveSettings();
-				}));
+				}))
+
 	}
 }
