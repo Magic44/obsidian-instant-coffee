@@ -1,5 +1,7 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
+import {App, Command, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting} from 'obsidian';
 import {hexToRgba} from "./utils/utils";
+import {triggerAsyncId} from "node:async_hooks";
+import {commands} from "codemirror";
 
 // Remember to rename these classes and interfaces!
 
@@ -14,33 +16,49 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	highlightColor: "rgba(157, 123, 218, 0.51)", // 默认颜色
 }
 
+
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// Custom function
-		// Ex: a click-highlight for search-result item
+		// # Add a expand btn for query block
+		this.registerMarkdownPostProcessor((element, context) => {
+			const targetElement = element.querySelector('.internal-query-header');
+			const newSiblingElement = document.createElement('button'); // 可以是任何类型的元素
+			newSiblingElement.className = 'new-sibling-button'; // 添加类名
+			newSiblingElement.textContent = '展开全部'; // 设置文本内容
+			newSiblingElement.style.marginLeft = '30px'
+
+			newSiblingElement.onclick = (ev) => {
+				const target = ev.target as HTMLElement
+				const searchResultItem = target.closest(".el-pre");
+
+				if (searchResultItem){
+					const itemList = searchResultItem.querySelectorAll('.search-result-file-match');
+					itemList.forEach((item: any)  => {
+						const btnList = item.querySelectorAll('.search-result-hover-button')
+						btnList[1].click()
+					})
+				}
+			}
+			targetElement && targetElement.appendChild(newSiblingElement)
+		});
+
+
+		// #  A click-highlight for search-result item
 		this.registerDomEvent(document, "click", (event) => {
 			const target = event.target as HTMLElement;
-
-			// 检查点击的元素或其祖先是否是搜索结果项
 			const searchResultItem = target.closest(".search-result-file-match.tappable");
 			if (searchResultItem) {
-				// 移除其他项的高亮样式
 				document.querySelectorAll(".search-result-file-match.tappable.highlighted")
 					.forEach((el) => {
 						el.classList.remove("highlighted");
 					});
-
-				// 为点击的项添加高亮样式
 				searchResultItem.classList.add("highlighted");
-				// console.log("Highlighted element:", searchResultItem);
 			}
 		});
-		const css = (strings: TemplateStringsArray) => strings.join("");
-		console.log("onLoad highlight", this.settings.highlightColor)
 		const highlightColor = this.settings.highlightColor
 		const rgba = hexToRgba(highlightColor, '0.5')
 		const styles = `
@@ -49,15 +67,14 @@ export default class MyPlugin extends Plugin {
 				border-radius: 4px;
 			}
 		`;
-		// 定义高亮样式
 		const style = document.createElement("style");
 		style.textContent = styles
 		document.head.appendChild(style);
 
+
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('😺This is a notice!!!AAA');
+		const ribbonIconEl = this.addRibbonIcon('dice', 'Light/Dark Toggle', (evt: MouseEvent) => {
+
 		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
